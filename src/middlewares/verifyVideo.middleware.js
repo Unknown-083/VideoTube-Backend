@@ -3,7 +3,7 @@ import { Video } from "../models/video.model.js";
 import { ApiError } from "../utils/ApiError.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 
-export const verifyVideo = asyncHandler(async(req , res, next ) => {
+export const verifyVideo = asyncHandler(async(req , _, next ) => {
     try {
         const {videoId} = req.params
         if(!(videoId && isValidObjectId(videoId))) throw new ApiError(400, "Valid video id is required")
