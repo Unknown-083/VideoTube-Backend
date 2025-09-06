@@ -163,8 +163,6 @@ const getPlaylistById = asyncHandler(async (req, res) => {
         }
     ]);
 
-    console.log(playlist);    
-
     if (!playlist) throw new ApiError(500, "Error while fetching the playlist");
 
     return res
@@ -178,8 +176,6 @@ const updatePlaylist = asyncHandler(async (req, res) => {
 
     if (!(playlistId && isValidObjectId(playlistId)))
         throw new ApiError(400, "Valid playlistId is required");
-
-    console.log(title, description?.trim());
 
     if (!title?.trim() && !description?.trim())
         throw new ApiError(400, "Either title or description is required!");

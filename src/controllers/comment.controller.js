@@ -74,8 +74,6 @@ const getVideoComments = asyncHandler(async (req, res) => {
 
   const totalComments = await Comment.countDocuments({ video: videoId });
 
-  console.log(totalComments);
-
   return res.status(200).json(
     new ApiResponse(200, "Fetched comments successfully!", {
       comments,
@@ -89,8 +87,6 @@ const getVideoComments = asyncHandler(async (req, res) => {
 const addComment = asyncHandler(async (req, res) => {
   const { content } = req.body;
   const { videoId } = req.params;
-
-  console.log(req.body, content);
 
   if (!videoId) throw new ApiError(400, "Video Id is missing");
   if (content.trim() === "") throw new ApiError(400, "Comment is empty!");
@@ -119,8 +115,6 @@ const updateComment = asyncHandler(async (req, res) => {
   const oldComment = await Comment.findById(commentId);
   if (!oldComment)
     throw new ApiError(400, "Comment doesn't exists with this ID");
-
-  console.log(oldComment.owner, req.user._id);
 
   if (!oldComment.owner.equals(req.user._id))
     throw new ApiError(402, "You are not authorized to update this comment");
@@ -151,8 +145,6 @@ const deleteComment = asyncHandler(async (req, res) => {
     throw new ApiError(400, "You are not authorized to delete this comment");
 
   const response = await Comment.findByIdAndDelete(commentId, { new: true });
-
-  console.log(response);
 
   return res
     .status(200)

@@ -27,7 +27,6 @@ const generateAccessAndRefreshToken = async (userId) => {
 
 const registerUser = asyncHandler(async (req, res) => {
   const { fullname, email, password, username } = req.body;
-  console.log("Name : ", fullname);
 
   if (
     [fullname, email, password, username].some((field) => {
@@ -54,7 +53,6 @@ const registerUser = asyncHandler(async (req, res) => {
   ) {
     coverImageLocalPath = req.files.coverImage[0].path;
   }
-  console.log(coverImageLocalPath);
 
   if (!avatarLocalPath) throw new ApiError(400, "Avatar File is required");
 
@@ -93,10 +91,7 @@ const registerUser = asyncHandler(async (req, res) => {
 
 const loginUser = asyncHandler(async (req, res) => {
   try {
-    console.log(req.body);
-
     const { email, username, password } = req.body;
-    console.log(username, email);
 
     if (!(username || email))
       throw new ApiError(401, "Username or Email is required!");
@@ -264,7 +259,6 @@ const updateCurrentUserDetails = asyncHandler(async (req, res) => {
 const updateUserAvatar = asyncHandler(async (req, res) => {
   const avatarLocalPath = req.file?.path;
 
-  console.log("Avatar Path ", avatarLocalPath);
   if (!avatarLocalPath) throw new ApiError(400, "Avatar file is missing");
 
   const avatar = await uploadOnCloudinary(avatarLocalPath);
@@ -273,15 +267,12 @@ const updateUserAvatar = asyncHandler(async (req, res) => {
 
   // Delete old avatar
   const userId = req.user?._id;
-  console.log(userId);
 
   const user = await User.findById(userId);
 
   if (!user) throw new ApiError(404, "User not found!");
-  console.log(user.avatar.publicId);
 
   const response = await deleteOnCloudinary(user.avatar.publicId);
-  console.log(response);
   if (!response)
     throw new ApiError(500, "Failed to delete Avatar on Cloudinary");
 
@@ -316,7 +307,6 @@ const updateUserCoverImage = asyncHandler(async (req, res) => {
 
   // Delete old coverImage
   const userId = req.user?._id;
-  console.log(userId);
 
   const user = await User.findById(userId);
 

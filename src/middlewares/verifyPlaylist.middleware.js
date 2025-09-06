@@ -7,13 +7,9 @@ export const verifyPlaylist = asyncHandler(async(req , _, next ) => {
     try {
         const {playlistId} = req.params
 
-        console.log(playlistId, req.params);
-        
         if(!(playlistId && isValidObjectId(playlistId))) throw new ApiError(400, "Valid playlistId is required!")
 
         const playlist = await Playlist.findById(playlistId)
-        
-        console.log(playlist);
         
         if(!playlist) throw new ApiError(404, "Playlist doesn't exists with the ID!")
 

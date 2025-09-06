@@ -73,7 +73,6 @@ const publishAVideo = asyncHandler(async (req, res) => {
   // upload the video and thumbnail on cloudinary and get the url to store
   // publish on db and return the video data
   const { title, description } = req.body;
-  console.log("Details ", title, description);
 
   if (
     [title, description].some((item) => {
@@ -81,8 +80,6 @@ const publishAVideo = asyncHandler(async (req, res) => {
     })
   )
     throw new ApiError(400, "Both fields are required!");
-
-  console.log(req.files);
 
   const videoLocalPath = req.files?.videoFile[0]?.path;
   const thumbnailLocalPath = req.files?.thumbnail[0]?.path;
@@ -149,7 +146,7 @@ const getVideoById = asyncHandler(async (req, res) => {
   )
   
   if(!user) throw new ApiError(500, "Error while updating watch history!");
-  
+
   const videoFile = await Video.aggregate([
     {
       $match: {
@@ -229,11 +226,8 @@ const updateVideoDetails = asyncHandler(async (req, res) => {
 
 const updateVideoThumbnail = asyncHandler(async (req, res) => {
   const { videoId } = req.params;
-  console.log(req.file);
   
-  const thumbnailLocalPath  = req.file?.path;
-  console.log(thumbnailLocalPath);
-  
+  const thumbnailLocalPath  = req.file?.path;  
 
   if (!thumbnailLocalPath)
     throw new ApiError(402, "Thumbnail file is required");
@@ -283,14 +277,11 @@ const deleteVideo = asyncHandler(async (req, res) => {
   
   const deleteVideo = await deleteOnCloudinary(video.videoFile.publicId, "video");
   const deleteThumbnail = await deleteOnCloudinary(video.thumbnail.publicId);
-
-  console.log(deleteVideo, deleteThumbnail);
   
   if (!(deleteThumbnail && deleteVideo))
     throw new ApiError(500, "Failed to delete video files on cloudinary!");
 
   const result = await Video.findByIdAndDelete(videoId, {new: true});
-  console.log(result);
 
   return res
     .status(200)
