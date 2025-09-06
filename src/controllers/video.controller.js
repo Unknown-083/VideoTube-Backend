@@ -4,6 +4,7 @@ import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { deleteOnCloudinary, uploadOnCloudinary } from "../utils/cloudinary.js";
+import { User } from "../models/user.model.js";
 
 const getAllVideos = asyncHandler(async (req, res) => {
   const {
@@ -137,6 +138,18 @@ const getVideoById = asyncHandler(async (req, res) => {
 
   if (!views) throw new ApiError(500, "Error while updating views!");
 
+  // Watch History can be implemented here
+
+  const user = await User.findByIdAndUpdate(
+    req.user._id,
+    {
+      $push: {watchHistory: videoId}
+    },
+    {new: true}
+  )
+  
+  if(!user) throw new ApiError(500, "Error while updating watch history!");
+  
   const videoFile = await Video.aggregate([
     {
       $match: {
