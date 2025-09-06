@@ -27,9 +27,6 @@ const addVideoToPlaylist = asyncHandler(async (req, res) => {
     const { playlistId } = req.params;
     const { videoId } = req.body;
 
-    if (!(playlistId && isValidObjectId(playlistId)))
-        throw new ApiError(400, "Valid playlistId is required!");
-
     const updatedPlaylist = await Playlist.findByIdAndUpdate(
         playlistId,
         {
@@ -55,9 +52,6 @@ const addVideoToPlaylist = asyncHandler(async (req, res) => {
 const removeVideoFromPlaylist = asyncHandler(async (req, res) => {
     const { playlistId } = req.params;
     const { videoId } = req.body;
-
-    if (!(playlistId && isValidObjectId(playlistId)))
-        throw new ApiError(400, "Valid playlistId is required!");
 
     const updatedPlaylist = await Playlist.findByIdAndUpdate(
         playlistId,
@@ -135,6 +129,9 @@ const getPlaylistById = asyncHandler(async (req, res) => {
             },
         },
         {
+            $unwind: "$owner"
+        },
+        {
             $lookup: {
                 from: "videos",
                 localField: "videos",
@@ -163,17 +160,16 @@ const getPlaylistById = asyncHandler(async (req, res) => {
                     }
                 ]
             },
-        },
-        {
-            $unwind: "$owner"
         }
     ]);
+
+    console.log(playlist);    
 
     if (!playlist) throw new ApiError(500, "Error while fetching the playlist");
 
     return res
         .status(200)
-        .json(new ApiResponse(200, "Playlist fetched successfully!", playlist));
+        .json(new ApiResponse(200, "Playlist fetched successfully!", playlist[0]));
 });
 
 const updatePlaylist = asyncHandler(async (req, res) => {
