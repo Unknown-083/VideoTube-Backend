@@ -1,0 +1,24 @@
+import { isValidObjectId } from "mongoose";
+import { ApiError } from "../utils/ApiError.js";
+import { asyncHandler } from "../utils/asyncHandler.js";
+import { Playlist } from "../models/playlist.model.js";
+
+export const verifyPlaylist = asyncHandler(async(req , _, next ) => {
+    try {
+        const {playlistId} = req.params
+
+        console.log(playlistId, req.params);
+        
+        if(!(playlistId && isValidObjectId(playlistId))) throw new ApiError(400, "Valid playlistId is required!")
+
+        const playlist = await Playlist.findById(playlistId)
+        
+        console.log(playlist);
+        
+        if(!playlist) throw new ApiError(404, "Playlist doesn't exists with the ID!")
+
+        next()
+    } catch (error) {
+        throw new ApiError(400, error?.message || "Invalid playlistID")
+    }
+})
