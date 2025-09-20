@@ -6,10 +6,15 @@ export const verifyChannel = async (req, _, next) => {
   try {
     const { channelId } = req.params;
 
+    console.log(channelId);
+    
+
     if (!(channelId && isValidObjectId(channelId)))
       throw new ApiError(400, "Valid channelId is required!");
 
     const channel = await User.findById(channelId);
+
+    console.log(channel);    
 
     if (!channel) throw new ApiError(400, "Channel doesn't exists!");
 

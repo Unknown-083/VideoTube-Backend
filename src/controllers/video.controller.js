@@ -37,7 +37,7 @@ const getAllVideos = asyncHandler(async (req, res) => {
     },
     {
       $addFields: {
-        owner: { $arrayElemAt: ["$owner", 0]}
+        owner: { $arrayElemAt: ["$owner", 0] }
       }
     },
     {
@@ -46,7 +46,7 @@ const getAllVideos = asyncHandler(async (req, res) => {
       },
     },
     {
-      $skip: (parseInt(page)-1) * parseInt(limit)
+      $skip: (parseInt(page) - 1) * parseInt(limit)
     },
     {
       $limit: parseInt(limit)
@@ -140,12 +140,12 @@ const getVideoById = asyncHandler(async (req, res) => {
   const user = await User.findByIdAndUpdate(
     req.user._id,
     {
-      $push: {watchHistory: videoId}
+      $push: { watchHistory: videoId }
     },
-    {new: true}
+    { new: true }
   )
-  
-  if(!user) throw new ApiError(500, "Error while updating watch history!");
+
+  if (!user) throw new ApiError(500, "Error while updating watch history!");
 
   const videoFile = await Video.aggregate([
     {
@@ -161,41 +161,58 @@ const getVideoById = asyncHandler(async (req, res) => {
         as: "owner",
         pipeline: [
           {
+            $lookup: {
+              from: "subscriptions",
+              localField: "_id",
+              foreignField: "channel",
+              as: "subscribers",
+            },
+          },
+          {
             $project: {
               fullname: 1,
               avatar: 1,
+              subscribersCount: { $size: "$subscribers" },
+              isSubscribed: {
+                $cond: {
+                  if: { $in: [req.user?.id, "$subscribers.subscriber"] },
+                  then: true,
+                  else: false,
+                },
+              },
             },
           },
         ],
       },
     },
     {
+      $unwind: "$owner"
+    },
+    {
       $lookup: {
-        from: "subscriptions",
-        localField: "owner_id",
-        foreignField: "channel",
-        as: "subscribers",
-      },
+        from: "likes",
+        localField: "_id",
+        foreignField: "video",
+        as: "likes",
+      }
     },
     {
       $addFields: {
-        subscribersCount: { size: "$subscribers" },
-        isSubscribed: {
-          $cond: {
-            if: { $in: [req.user?.id, "$subscribers.subscriber"] },
-            then: true,
-            else: false,
-          },
-        },
-      },
+        likesCount: { $size: "$likes" }
+      }
     },
+    {
+      $project: {
+        likes: 0
+      }
+    }
   ]);
 
   if (!videoFile) throw new ApiError(500, "Error while feching video file!");
 
   return res
     .status(200)
-    .json(new ApiResponse(200, "Video Fetched Successfully!", videoFile));
+    .json(new ApiResponse(200, "Video Fetched Successfully!", videoFile[0]));
 });
 
 const updateVideoDetails = asyncHandler(async (req, res) => {
@@ -226,8 +243,8 @@ const updateVideoDetails = asyncHandler(async (req, res) => {
 
 const updateVideoThumbnail = asyncHandler(async (req, res) => {
   const { videoId } = req.params;
-  
-  const thumbnailLocalPath  = req.file?.path;  
+
+  const thumbnailLocalPath = req.file?.path;
 
   if (!thumbnailLocalPath)
     throw new ApiError(402, "Thumbnail file is required");
@@ -274,14 +291,14 @@ const deleteVideo = asyncHandler(async (req, res) => {
   // Delete the video file from cloudinary
   // Delete the document from DB
   const video = await Video.findById(videoId);
-  
+
   const deleteVideo = await deleteOnCloudinary(video.videoFile.publicId, "video");
   const deleteThumbnail = await deleteOnCloudinary(video.thumbnail.publicId);
-  
+
   if (!(deleteThumbnail && deleteVideo))
     throw new ApiError(500, "Failed to delete video files on cloudinary!");
 
-  const result = await Video.findByIdAndDelete(videoId, {new: true});
+  const result = await Video.findByIdAndDelete(videoId, { new: true });
 
   return res
     .status(200)
