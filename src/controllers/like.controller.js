@@ -125,14 +125,6 @@ const getLikedVideos = asyncHandler(async (req, res) => {
               localField: "owner",
               foreignField: "_id",
               as: "owner",
-              pipeline: [
-                {
-                  $project: {
-                    username: 1,
-                    fullname: 1,
-                  },
-                },
-              ],
             },
           },
           {
@@ -234,14 +226,6 @@ const getLikedTweets = asyncHandler(async (req, res) => {
               localField: "owner",
               foreignField: "_id",
               as: "owner",
-              pipeline: [
-                {
-                  $project: {
-                    username: 1,
-                    fullname: 1,
-                  },
-                },
-              ],
             },
           },
           {

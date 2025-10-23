@@ -137,15 +137,31 @@ const getVideoById = asyncHandler(async (req, res) => {
 
   // Watch History can be implemented here
 
-  const user = await User.findByIdAndUpdate(
-    req.user._id,
-    {
-      $push: { watchHistory: videoId }
-    },
-    { new: true }
-  )
+  // const user = await User.findByIdAndUpdate(
+  //   req.user._id,
+  //   {
+  //     $push: { watchHistory: videoId }
+  //   },
+  //   { new: true }
+  // )
 
-  if (!user) throw new ApiError(500, "Error while updating watch history!");
+  const watchHistoryExists = await User.findOne({
+    _id: req.user._id,
+    watchHistory: { $in: [videoId] }
+  });
+
+  console.log("Watch History :: ",watchHistoryExists);
+
+  if(!watchHistoryExists) {
+    const user = await User.findByIdAndUpdate(
+      req.user._id,
+      {
+        $push: { watchHistory: videoId }
+      },
+      { new: true }
+    )
+    if (!user) throw new ApiError(500, "Error while updating watch history!");
+  } 
 
   const videoFile = await Video.aggregate([
     {
