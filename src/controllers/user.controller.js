@@ -406,7 +406,6 @@ const getUserChannelProfile = asyncHandler(async (req, res) => {
 });
 
 const getUserWatchHistory = asyncHandler(async (req, res) => {
-  
   const videos = await User.aggregate([
     {
       $match: {
@@ -419,6 +418,28 @@ const getUserWatchHistory = asyncHandler(async (req, res) => {
         localField: "watchHistory",
         foreignField: "_id",
         as: "videoDetails",
+        pipeline: [
+          {
+            $lookup: {
+              from: "users",
+              localField: "owner",
+              foreignField: "_id",
+              as: "owner",
+              pipeline: [
+                {
+                  $project: {
+                    password: 0,
+                    refreshToken: 0,
+                    watchHistory: 0,
+                  }
+                }
+              ]
+            },
+          },
+          {
+            $unwind: "$owner",
+          },
+        ],
       },
     },
     {
