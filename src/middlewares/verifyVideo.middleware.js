@@ -5,7 +5,7 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 
 export const verifyVideo = asyncHandler(async(req , _, next ) => {
     try {
-        const {videoId} = req.body ? req.body : req.params;
+        const videoId = req.body?.videoId || req.params?.videoId;
         
         if(!(videoId && isValidObjectId(videoId))) throw new ApiError(400, "Valid video id is required")
 
