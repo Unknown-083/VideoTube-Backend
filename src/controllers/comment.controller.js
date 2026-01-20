@@ -48,6 +48,9 @@ const getVideoComments = asyncHandler(async (req, res) => {
         likesCount: {
           $size: "$likes",
         },
+        hasLiked: {
+          $in: [req.user?._id || null, "$likes.likedBy"],
+        }
       },
     },
     {
@@ -68,6 +71,7 @@ const getVideoComments = asyncHandler(async (req, res) => {
         createdAt: 1,
         updatedAt: 1,
         likesCount: 1,
+        hasLiked: 1,
       },
     },
   ]);
