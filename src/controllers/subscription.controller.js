@@ -61,8 +61,8 @@ const getUserChannelSubscribers = asyncHandler(async (req, res) => {
     },
   ]);
 
-  if (!subscribers)
-    throw new ApiError(500, "Error while fething channel subscribers list!");
+  if (!subscribers || !Array.isArray(subscribers))
+    throw new ApiError(500, "Error while fetching channel subscribers list!");
 
   return res
     .status(200)
@@ -97,9 +97,12 @@ const getSubscribedChannels = asyncHandler(async (req, res) => {
         ],
       },
     },
+    {
+      $unwind: "$channel",
+    },
   ]);
 
-  if (!subscribedChannels)
+  if (!subscribedChannels || !Array.isArray(subscribedChannels))
     throw new ApiError(500, "Error while fetching subscribed channels list!");
 
   return res
