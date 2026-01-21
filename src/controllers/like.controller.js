@@ -125,21 +125,35 @@ const getLikedVideos = asyncHandler(async (req, res) => {
               localField: "owner",
               foreignField: "_id",
               as: "owner",
+              pipeline: [
+                {
+                  $project: {
+                    username: 1,
+                    fullname: 1,
+                    avatar: {
+                      url: 1,
+                    },
+                  },
+                },
+                {
+                  $unwind: "$avatar",
+                }
+              ],
             },
           },
-          {
-            $unwind: "$owner",
-          },
+          { $unwind: "$owner" },
         ],
       },
     },
+    { $unwind: "$video" },
+    { $replaceRoot: { newRoot: "$video" } },
   ]);
 
   if (!videos) throw new ApiError(500, "Error while fetching liked videos!");
 
   return res
     .status(200)
-    .json(new ApiResponse(200, "Like videos fetched successfully!", videos));
+    .json(new ApiResponse(200, "Liked videos fetched successfully!", videos));
 });
 
 const getLikedComments = asyncHandler(async (req, res) => {
