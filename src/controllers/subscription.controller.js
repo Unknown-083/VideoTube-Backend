@@ -100,6 +100,14 @@ const getSubscribedChannels = asyncHandler(async (req, res) => {
     {
       $unwind: "$channel",
     },
+    {
+      $project: {
+        channel: 1,
+      },
+    },
+    {
+      $replaceRoot: { newRoot: "$channel" },
+    }
   ]);
 
   if (!subscribedChannels || !Array.isArray(subscribedChannels))
