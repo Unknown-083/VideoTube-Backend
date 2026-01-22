@@ -50,6 +50,9 @@ const getUserChannelSubscribers = asyncHandler(async (req, res) => {
         as: "subscriber",
         pipeline: [
           {
+            
+          },
+          {
             $project: {
               fullname: 1,
               username: 1,
@@ -59,15 +62,26 @@ const getUserChannelSubscribers = asyncHandler(async (req, res) => {
         ],
       },
     },
+    {
+      $facet: {
+        subscribers: [{ $project: { subscriber: 1 } }],
+        subscriberCount: [{ $count: "count" }],
+      },
+    },
   ]);
 
   if (!subscribers || !Array.isArray(subscribers))
     throw new ApiError(500, "Error while fetching channel subscribers list!");
 
+  const subscriberCount = subscribers[0]?.subscriberCount[0]?.count || 0;
+
   return res
     .status(200)
     .json(
-      new ApiResponse(200, "Subscribers fetched successfully!", subscribers)
+      new ApiResponse(200, "Subscribers fetched successfully!", {
+        subscribers: subscribers[0]?.subscribers || [],
+        subscribersCount: subscriberCount,
+      })
     );
 });
 
@@ -107,15 +121,26 @@ const getSubscribedChannels = asyncHandler(async (req, res) => {
     },
     {
       $replaceRoot: { newRoot: "$channel" },
-    }
+    },
+    {
+      $facet: {
+        channels: [{ $match: {} }],
+        subscribedChannelsCount: [{ $count: "count" }],
+      },
+    },
   ]);
 
   if (!subscribedChannels || !Array.isArray(subscribedChannels))
     throw new ApiError(500, "Error while fetching subscribed channels list!");
 
+  const subscribedChannelsCount = subscribedChannels[0]?.subscribedChannelsCount[0]?.count || 0;
+
   return res
     .status(200)
-    .json(new ApiResponse(200, "Subscribed channels fetched successfully!", subscribedChannels));
+    .json(new ApiResponse(200, "Subscribed channels fetched successfully!", {
+      channels: subscribedChannels[0]?.channels || [],
+      subscribedChannelsCount: subscribedChannelsCount,
+    }));
 });
 
 export { toggleSubscription, getSubscribedChannels, getUserChannelSubscribers };
