@@ -115,6 +115,21 @@ const getSubscribedChannels = asyncHandler(async (req, res) => {
       $unwind: "$channel",
     },
     {
+      $lookup: {
+        from: "subscriptions",
+        localField: "channel._id",
+        foreignField: "channel",
+        as: "subscribers",
+      },
+    },
+    {
+      $addFields: {
+        "channel.subscribersCount": {
+          $size: "$subscribers",
+        },
+      },
+    },
+    {
       $project: {
         channel: 1,
       },
@@ -122,25 +137,14 @@ const getSubscribedChannels = asyncHandler(async (req, res) => {
     {
       $replaceRoot: { newRoot: "$channel" },
     },
-    {
-      $facet: {
-        channels: [{ $match: {} }],
-        subscribedChannelsCount: [{ $count: "count" }],
-      },
-    },
   ]);
 
   if (!subscribedChannels || !Array.isArray(subscribedChannels))
     throw new ApiError(500, "Error while fetching subscribed channels list!");
 
-  const subscribedChannelsCount = subscribedChannels[0]?.subscribedChannelsCount[0]?.count || 0;
-
   return res
     .status(200)
-    .json(new ApiResponse(200, "Subscribed channels fetched successfully!", {
-      channels: subscribedChannels[0]?.channels || [],
-      subscribedChannelsCount: subscribedChannelsCount,
-    }));
+    .json(new ApiResponse(200, "Subscribed channels fetched successfully!", subscribedChannels));
 });
 
 export { toggleSubscription, getSubscribedChannels, getUserChannelSubscribers };
