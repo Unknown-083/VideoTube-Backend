@@ -339,10 +339,7 @@ const updateUserCoverImage = asyncHandler(async (req, res) => {
 });
 
 const getUserChannelProfile = asyncHandler(async (req, res) => {
-  const {id} = req.params;
-
-  console.log(id);
-  
+  const { id } = req.params;
 
   if (!(id && isValidObjectId(id))) throw new ApiError(400, "Valid Channel ID is required!");
 
@@ -373,8 +370,30 @@ const getUserChannelProfile = asyncHandler(async (req, res) => {
         from: "videos",
         localField: "_id",
         foreignField: "owner",
-        as: "videos"
-      }
+        as: "videos",
+        pipeline: [
+          {
+            $lookup: {
+              from: "users",
+              localField: "owner",
+              foreignField: "_id",
+              as: "owner",
+              pipeline: [
+                {
+                  $project: {
+                    password: 0,
+                    refreshToken: 0,
+                    watchHistory: 0,
+                  }
+                }
+              ]
+            },
+          },
+          {
+            $unwind: "$owner",
+          }
+        ]
+      },
     },
     {
       $addFields: {
