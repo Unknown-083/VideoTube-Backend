@@ -4,7 +4,7 @@ import { User } from "../models/user.model.js";
 import { deleteOnCloudinary, uploadOnCloudinary } from "../utils/cloudinary.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import jwt from "jsonwebtoken";
-import mongoose from "mongoose";
+import mongoose, { isValidObjectId } from "mongoose";
 
 const generateAccessAndRefreshToken = async (userId) => {
   try {
@@ -339,14 +339,17 @@ const updateUserCoverImage = asyncHandler(async (req, res) => {
 });
 
 const getUserChannelProfile = asyncHandler(async (req, res) => {
-  const { username } = req.params;
+  const {id} = req.params;
 
-  if (!username?.trim()) throw new ApiError(400, "User not found!");
+  console.log(id);
+  
+
+  if (!(id && isValidObjectId(id))) throw new ApiError(400, "Valid Channel ID is required!");
 
   const channel = await User.aggregate([
     {
       $match: {
-        username: username?.toLowerCase(),
+        _id: new mongoose.Types.ObjectId(id),
       },
     },
     {
@@ -364,6 +367,20 @@ const getUserChannelProfile = asyncHandler(async (req, res) => {
         foreignField: "subscriber",
         as: "subscribedTo",
       },
+    },
+    {
+      $lookup: {
+        from: "videos",
+        localField: "_id",
+        foreignField: "owner",
+        as: "videos"
+      }
+    },
+    {
+      $addFields: {
+        totalVideos: { $size: "$videos" },
+        totalViews: { $sum: "$videos.views" },
+      }
     },
     {
       $addFields: {
@@ -392,6 +409,10 @@ const getUserChannelProfile = asyncHandler(async (req, res) => {
         isSubscribed: 1,
         subscribersCount: 1,
         channelsSubscribedToCount: 1,
+        totalVideos: 1,
+        totalViews: 1,
+        createdAt: 1,
+        videos: 1
       },
     },
   ]);
