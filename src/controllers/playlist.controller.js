@@ -172,18 +172,18 @@ const getPlaylistById = asyncHandler(async (req, res) => {
 
 const updatePlaylist = asyncHandler(async (req, res) => {
     const { playlistId } = req.params;
-    const { title, description } = req.body;
+    const { name, description } = req.body;
 
     if (!(playlistId && isValidObjectId(playlistId)))
         throw new ApiError(400, "Valid playlistId is required");
 
-    if (!title?.trim() && !description?.trim())
-        throw new ApiError(400, "Either title or description is required!");
+    if (!name?.trim() && !description?.trim())
+        throw new ApiError(400, "Either name or description is required!");
 
     const updatedPlaylist = await Playlist.findByIdAndUpdate(playlistId,
         {
             $set: {
-                title,
+                name,
                 description,
             },
         },
