@@ -340,6 +340,12 @@ const updateUserCoverImage = asyncHandler(async (req, res) => {
 
 const getUserChannelProfile = asyncHandler(async (req, res) => {
   const { id } = req.params;
+  let userId = null;
+
+  // User Id should be valid object id or null
+  if (req.user && req.user.id) {
+    userId = new mongoose.Types.ObjectId(req.user.id);
+  }
 
   if (!(id && isValidObjectId(id))) throw new ApiError(400, "Valid Channel ID is required!");
 
@@ -411,7 +417,12 @@ const getUserChannelProfile = asyncHandler(async (req, res) => {
         },
         isSubscribed: {
           $cond: {
-            if: { $in: [req.user?.id, "$subscribers.subscriber"] },
+            if: {
+              $and: [
+                { $ne: [userId, null] },
+                { $in: [userId, "$subscribers.subscriber"] }
+              ]
+            },
             then: true,
             else: false,
           },
