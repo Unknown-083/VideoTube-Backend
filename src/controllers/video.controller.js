@@ -124,6 +124,11 @@ const getVideoById = asyncHandler(async (req, res) => {
   // search the video in the db
   // return the video url
   const { videoId } = req.params;
+  // User Id should be valid object id or null
+  let userId = null;
+  if (req.user && req.user.id) {
+    userId = new mongoose.Types.ObjectId(req.user.id);
+  }
 
   const views = await Video.findByIdAndUpdate(
     videoId,
@@ -142,9 +147,9 @@ const getVideoById = asyncHandler(async (req, res) => {
     watchHistory: { $in: [videoId] }
   });
 
-  console.log("Watch History :: ",watchHistoryExists);
+  console.log("Watch History :: ", watchHistoryExists);
 
-  if(!watchHistoryExists) {
+  if (!watchHistoryExists) {
     const user = await User.findByIdAndUpdate(
       req.user._id,
       {
@@ -153,7 +158,7 @@ const getVideoById = asyncHandler(async (req, res) => {
       { new: true }
     )
     if (!user) throw new ApiError(500, "Error while updating watch history!");
-  } 
+  }
 
   const videoFile = await Video.aggregate([
     {
@@ -183,7 +188,12 @@ const getVideoById = asyncHandler(async (req, res) => {
               subscribersCount: { $size: "$subscribers" },
               isSubscribed: {
                 $cond: {
-                  if: { $in: [req.user?.id, "$subscribers.subscriber"] },
+                  if: {
+                    $and: [
+                      { $ne: [userId, null] },
+                      { $in: [userId, "$subscribers.subscriber"] }
+                    ]
+                  },
                   then: true,
                   else: false,
                 },
