@@ -1,4 +1,4 @@
-# 🎥 VideoTube Backend
+# 🎥 चलचित्र Backend
 
 A **YouTube-like Web App Backend** built with **Node.js**, **Express**, and **MongoDB**.  
 This project simulates video platform functionalities including user authentication, video uploads, watch history, comments, likes, subscriptions, playlists, and more.
