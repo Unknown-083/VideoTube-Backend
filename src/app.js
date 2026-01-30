@@ -9,7 +9,7 @@ const app = e();
 app.use(cors({
     origin: [
         process.env.CORS_ORIGIN,
-        "https://chal-chitra.netlify.app/",
+        "http://localhost:5173",
     ],
     credentials: true
 }));
