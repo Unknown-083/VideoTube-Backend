@@ -30,7 +30,9 @@ const toggleSubscription = asyncHandler(async (req, res) => {
 
   return res
     .status(200)
-    .json(new ApiResponse(200, "Subscriber added successfully!", newSubscriber));
+    .json(
+      new ApiResponse(200, "Subscriber added successfully!", newSubscriber)
+    );
 });
 
 const getUserChannelSubscribers = asyncHandler(async (req, res) => {
@@ -49,9 +51,7 @@ const getUserChannelSubscribers = asyncHandler(async (req, res) => {
         foreignField: "_id",
         as: "subscriber",
         pipeline: [
-          {
-            
-          },
+          {},
           {
             $project: {
               fullname: 1,
@@ -75,14 +75,12 @@ const getUserChannelSubscribers = asyncHandler(async (req, res) => {
 
   const subscriberCount = subscribers[0]?.subscriberCount[0]?.count || 0;
 
-  return res
-    .status(200)
-    .json(
-      new ApiResponse(200, "Subscribers fetched successfully!", {
-        subscribers: subscribers[0]?.subscribers || [],
-        subscribersCount: subscriberCount,
-      })
-    );
+  return res.status(200).json(
+    new ApiResponse(200, "Subscribers fetched successfully!", {
+      subscribers: subscribers[0]?.subscribers || [],
+      subscribersCount: subscriberCount,
+    })
+  );
 });
 
 const getSubscribedChannels = asyncHandler(async (req, res) => {
@@ -144,7 +142,57 @@ const getSubscribedChannels = asyncHandler(async (req, res) => {
 
   return res
     .status(200)
-    .json(new ApiResponse(200, "Subscribed channels fetched successfully!", subscribedChannels));
+    .json(
+      new ApiResponse(
+        200,
+        "Subscribed channels fetched successfully!",
+        subscribedChannels
+      )
+    );
 });
 
-export { toggleSubscription, getSubscribedChannels, getUserChannelSubscribers };
+const getSubscriptionVideos = asyncHandler(async (req, res) => {
+  // This function can be implemented to fetch videos from subscribed channels
+  const videos = await Subscription.aggregate([
+    // aggregation pipeline to fetch videos from subscribed channels
+    { $match: { subscriber: req.user._id } },
+    {
+      $lookup: {
+        from: "videos",
+        localField: "channel",
+        foreignField: "owner",
+        as: "videos",
+        pipeline: [
+          {
+            $lookup: {
+              from: "users",
+              localField: "owner",
+              foreignField: "_id",
+              as: "owner",
+              pipeline: [
+                {
+                  $project: {
+                    username: 1,
+                    fullname: 1,
+                    avatar: 1,
+                  },
+                },
+              ],
+            },
+          },
+          { 
+            $unwind: "$owner"
+          }
+        ]
+      },
+    },
+    { $unwind: "$videos" },
+    { $replaceRoot: { newRoot: "$videos" } },
+  ]);
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, "Subscription videos fetched successfully!", videos));
+});
+
+export { toggleSubscription, getSubscribedChannels, getUserChannelSubscribers, getSubscriptionVideos };
