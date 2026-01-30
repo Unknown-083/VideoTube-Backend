@@ -1,4 +1,4 @@
-# 🎥 VideoTube Backend
+# 🎥 चलचित्र Backend
 
 A **YouTube-like Web App Backend** built with **Node.js**, **Express**, and **MongoDB**.  
 This project simulates video platform functionalities including user authentication, video uploads, watch history, comments, likes, subscriptions, playlists, and more.
@@ -49,12 +49,52 @@ All API endpoints have been thoroughly tested using [Postman](https://postman.co
 ## 📂 Folder Structure (Example)
 
 ```text
-├── controllers/
-├── middlewares/
-├── models/
-├── routes/
-├── config/
-├── utils/
-├── .env
-├── server.js
-├── package.json
+├── public/
+    └── temp/
+    │   └── .gitkeep
+├── src/ (16900 tokens)
+    ├── constants.js
+    ├── utils/ (800 tokens)
+    │   ├── ApiResponse.js
+    │   ├── asyncHandler.js (200 tokens)
+    │   ├── ApiError.js (200 tokens)
+    │   └── cloudinary.js (300 tokens)
+    ├── middlewares/ (900 tokens)
+    │   ├── multer.middleware.js
+    │   ├── verifyChannel.middleware.js (200 tokens)
+    │   ├── verifyPlaylist.middleware.js (200 tokens)
+    │   ├── verifyVideo.middleware.js (200 tokens)
+    │   └── auth.middleware.js (200 tokens)
+    ├── models/ (1600 tokens)
+    │   ├── tweet.model.js
+    │   ├── subscription.model.js
+    │   ├── comment.model.js
+    │   ├── like.model.js (200 tokens)
+    │   ├── playlist.model.js (200 tokens)
+    │   ├── video.model.js (300 tokens)
+    │   └── user.model.js (600 tokens)
+    ├── db/ (100 tokens)
+    │   └── index.js
+    ├── routes/ (1700 tokens)
+    │   ├── tweet.routes.js
+    │   ├── comment.routes.js (200 tokens)
+    │   ├── subscription.routes.js (200 tokens)
+    │   ├── like.routes.js (200 tokens)
+    │   ├── playlist.routes.js (300 tokens)
+    │   ├── video.routes.js (300 tokens)
+    │   └── user.routes.js (400 tokens)
+    ├── index.js (300 tokens)
+    ├── app.js (300 tokens)
+    └── controllers/ (11200 tokens)
+    │   ├── tweet.controller.js (700 tokens)
+    │   ├── subscription.controller.js (900 tokens)
+    │   ├── comment.controller.js (1000 tokens)
+    │   ├── playlist.controller.js (1600 tokens)
+    │   ├── like.controller.js (1600 tokens)
+    │   ├── video.controller.js (2100 tokens)
+    │   └── user.controller.js (3300 tokens)
+├── .prettierignore
+├── .prettierrc
+├── package.json (200 tokens)
+├── README.md (400 tokens)
+└── .gitignore (600 tokens)
