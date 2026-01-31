@@ -1,34 +1,48 @@
 import { Router } from "express";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
-import {
-  addVideoToPlaylist,
-  createPlaylist,
-  deletePlaylist,
-  getPlaylistById,
-  getUserPlaylists,
-  removeVideoFromPlaylist,
-  updatePlaylist,
-} from "../controllers/playlist.controller.js";
 import { verifyVideo } from "../middlewares/verifyVideo.middleware.js";
 import { verifyPlaylist } from "../middlewares/verifyPlaylist.middleware.js";
+import {
+  createPlaylist,
+  getUserPlaylists,
+  getPlaylistById,
+  updatePlaylist,
+  deletePlaylist,
+  getUserWatchLaterPlaylist,
+  addVideoToPlaylist,
+  removeVideoFromPlaylist,
+} from "../controllers/playlist.controller.js";
 
 const router = Router();
 
+// All routes require authentication
 router.use(verifyJWT);
 
-router.route("/").post(createPlaylist).get(getUserPlaylists);
+// -----------------------------
+// Watch Later Playlist
+// -----------------------------
+router.get("/watch-later", getUserWatchLaterPlaylist);
 
-// // Middleware to verify the playlist
-// router.use("/:playlistId", verifyPlaylist);
+// -----------------------------
+// Playlists Root
+// -----------------------------
+router.route("/")
+  .post(createPlaylist)          // Create a new playlist
+  .get(getUserPlaylists);       // Get all playlists of logged-in user
 
-router
-  .route("/:playlistId")
+// -----------------------------
+// Playlist by ID
+// -----------------------------
+router.route("/:playlistId")
   .get(verifyPlaylist, getPlaylistById)
   .patch(verifyPlaylist, updatePlaylist)
   .delete(verifyPlaylist, deletePlaylist);
-router.route("/add-video/:playlistId").patch(verifyVideo, verifyPlaylist, addVideoToPlaylist);
-router
-  .route("/remove-video/:playlistId")
-  .patch(verifyVideo, verifyPlaylist, removeVideoFromPlaylist);
+
+// -----------------------------
+// Videos inside Playlist (RESTful)
+// -----------------------------
+router.route("/:playlistId/videos/:videoId")
+  .post(verifyVideo, verifyPlaylist, addVideoToPlaylist)       // Add video
+  .delete(verifyVideo, verifyPlaylist, removeVideoFromPlaylist); // Remove video
 
 export default router;

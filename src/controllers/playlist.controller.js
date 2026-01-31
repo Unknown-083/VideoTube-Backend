@@ -25,7 +25,7 @@ const createPlaylist = asyncHandler(async (req, res) => {
 
 const addVideoToPlaylist = asyncHandler(async (req, res) => {
     const { playlistId } = req.params;
-    const { videoId } = req.body;
+    const { videoId } = req.params;
 
     const updatedPlaylist = await Playlist.findByIdAndUpdate(
         playlistId,
@@ -51,7 +51,7 @@ const addVideoToPlaylist = asyncHandler(async (req, res) => {
 
 const removeVideoFromPlaylist = asyncHandler(async (req, res) => {
     const { playlistId } = req.params;
-    const { videoId } = req.body;
+    const { videoId } = req.params;
 
     const updatedPlaylist = await Playlist.findByIdAndUpdate(
         playlistId,
@@ -215,11 +215,25 @@ const deletePlaylist = asyncHandler(async (req, res) => {
         .json(new ApiResponse(200, "Playlist deleted successfully!", {}));
 });
 
+const getUserWatchLaterPlaylist = asyncHandler(async (req, res) => {
+    const playlist = await Playlist.findOne({
+        owner: req.user._id,
+        isDefault: true,
+    }).populate("videos");
+    if (!playlist) throw new ApiError(400, "Error while fething watch later playlist!");
+
+    return res
+        .status(200)
+        .json(new ApiResponse(200, "Watch later playlist fetched successfully!", playlist));
+
+});
+
 export {
     createPlaylist,
     addVideoToPlaylist,
     getUserPlaylists,
     getPlaylistById,
+    getUserWatchLaterPlaylist,
     removeVideoFromPlaylist,
     updatePlaylist,
     deletePlaylist,

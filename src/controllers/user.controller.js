@@ -28,11 +28,7 @@ const generateAccessAndRefreshToken = async (userId) => {
 const registerUser = asyncHandler(async (req, res) => {
   const { fullname, email, password, username } = req.body;
 
-  if (
-    [fullname, email, password, username].some((field) => {
-      field?.trim() === "";
-    })
-  ) {
+  if ([fullname, email, password, username].some(field => field?.trim() === "")) {
     throw new ApiError(400, "All fields are required");
   }
 
@@ -46,11 +42,7 @@ const registerUser = asyncHandler(async (req, res) => {
   const avatarLocalPath = req.files?.avatar[0]?.path;
 
   let coverImageLocalPath;
-  if (
-    req.files &&
-    Array.isArray(req.files.coverImage) &&
-    req.files.coverImage.length > 0
-  ) {
+  if (req.files?.coverImage?.length > 0) {
     coverImageLocalPath = req.files.coverImage[0].path;
   }
 
@@ -75,6 +67,14 @@ const registerUser = asyncHandler(async (req, res) => {
     username: username.toLowerCase(),
     password,
     email,
+  });
+
+  // ⭐ CREATE WATCH LATER
+  await Playlist.create({
+    name: "Watch Later",
+    description: "Videos saved to watch later",
+    owner: user._id,
+    isDefault: true,
   });
 
   const createdUser = await User.findById(user._id).select(

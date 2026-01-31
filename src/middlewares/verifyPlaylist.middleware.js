@@ -7,7 +7,9 @@ export const verifyPlaylist = asyncHandler(async(req , _, next ) => {
     try {
         const {playlistId} = req.params
 
-        if(!(playlistId && isValidObjectId(playlistId))) throw new ApiError(400, "Valid playlistId is required!")
+        if(!playlistId) return next();
+
+        if(!isValidObjectId(playlistId)) throw new ApiError(400, "Valid playlistId is required!")
 
         const playlist = await Playlist.findById(playlistId)
         
