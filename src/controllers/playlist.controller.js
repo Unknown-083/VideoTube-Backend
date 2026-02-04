@@ -75,6 +75,41 @@ const removeVideoFromPlaylist = asyncHandler(async (req, res) => {
     );
 });
 
+const toggleVideoInPlaylist = asyncHandler(async (req, res) => {
+  const { playlistId, videoId } = req.params;
+
+  const playlist = await Playlist.findById(playlistId);
+
+  const videoExists = playlist.videos.includes(videoId);
+
+  const updatedPlaylist = await Playlist.findByIdAndUpdate(
+    playlistId,
+    videoExists
+      ? { $pull: { videos: videoId } }
+      : { $push: { videos: videoId } },
+    { new: true }
+  );
+
+  if (!updatedPlaylist) {
+    throw new ApiError(
+      500,
+      videoExists
+        ? "Error while removing video from playlist"
+        : "Error while adding video to playlist"
+    );
+  }
+
+  return res.status(200).json(
+    new ApiResponse(
+      200,
+      videoExists
+        ? "Video removed from playlist successfully!"
+        : "Video added to playlist successfully!",
+      updatedPlaylist
+    )
+  );
+});
+
 const getUserPlaylists = asyncHandler(async (req, res) => {
   const playlist = await Playlist.aggregate([
     {
@@ -276,6 +311,7 @@ export {
   getPlaylistById,
   getUserWatchLaterPlaylist,
   removeVideoFromPlaylist,
+  toggleVideoInPlaylist,
   updatePlaylist,
   deletePlaylist,
 };

@@ -11,6 +11,7 @@ import {
   getUserWatchLaterPlaylist,
   addVideoToPlaylist,
   removeVideoFromPlaylist,
+  toggleVideoInPlaylist
 } from "../controllers/playlist.controller.js";
 
 const router = Router();
@@ -43,6 +44,7 @@ router.route("/:playlistId")
 // -----------------------------
 router.route("/:playlistId/videos/:videoId")
   .post(verifyVideo, verifyPlaylist, addVideoToPlaylist)       // Add video
-  .delete(verifyVideo, verifyPlaylist, removeVideoFromPlaylist); // Remove video
+  .delete(verifyVideo, verifyPlaylist, removeVideoFromPlaylist) // Remove video
+  .patch(verifyVideo, verifyPlaylist, toggleVideoInPlaylist); // Toggle video
 
 export default router;
