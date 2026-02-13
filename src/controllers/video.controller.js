@@ -238,29 +238,49 @@ const getVideoById = asyncHandler(async (req, res) => {
 
 const updateVideoDetails = asyncHandler(async (req, res) => {
   const { videoId } = req.params;
+  const { title, description, isPublished } = req.body;
 
-  const { title, description } = req.body;
+  if (
+    !title?.trim() &&
+    !description?.trim() &&
+    isPublished === undefined &&
+    !req.file
+  ) {
+    throw new ApiError(400, "At least one field is required");
+  }
 
-  if (!title?.trim() && !description?.trim())
-    throw new ApiError(402, "Atleast one field is required!");
+  const video = await Video.findById(videoId);
+  if (!video) throw new ApiError(404, "Video not found");
 
-  const video = await Video.findByIdAndUpdate(
-    videoId,
-    {
-      $set: {
-        title,
-        description,
-      },
-    },
-    { new: true }
+  // 🔹 Thumbnail update
+  if (req.file?.path) {
+    const uploadedThumbnail = await uploadOnCloudinary(req.file.path);
+
+    if (!uploadedThumbnail)
+      throw new ApiError(500, "Thumbnail upload failed");
+
+    if (video.thumbnail?.publicId) {
+      await deleteOnCloudinary(video.thumbnail.publicId);
+    }
+
+    video.thumbnail = {
+      url: uploadedThumbnail.url,
+      publicId: uploadedThumbnail.public_id,
+    };
+  }
+
+  // 🔹 Text fields update
+  if (title) video.title = title;
+  if (description) video.description = description;
+  if (isPublished !== undefined) video.isPublished = isPublished;
+
+  await video.save();
+
+  return res.status(200).json(
+    new ApiResponse(200, "Video updated successfully", video)
   );
-
-  if (!video) throw new ApiError(500, "Error while updating Video details!");
-
-  return res
-    .status(200)
-    .json(new ApiResponse(200, "Video details updated successfully!", video));
 });
+
 
 const updateVideoThumbnail = asyncHandler(async (req, res) => {
   const { videoId } = req.params;

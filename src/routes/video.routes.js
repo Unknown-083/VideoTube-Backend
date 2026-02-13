@@ -39,8 +39,8 @@ router
   .route("/update/thumbnail/:videoId")
   .patch(verifyVideo, upload.single("thumbnail"), updateVideoThumbnail);
 router
-  .route("/update/account-details/:videoId")
-  .patch(verifyVideo, updateVideoDetails);
+  .route("/update/:videoId")
+  .patch(verifyVideo, upload.single("thumbnail"), updateVideoDetails);
 // router.route("/toggle/publish/:videoId").patch(togglePublishStatus);
 
 export default router;
