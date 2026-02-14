@@ -6,11 +6,15 @@ const tweetSchema = new Schema(
             type: String,
             required: true
         },
+        image: {
+            url: { type: String },
+            publicId: { type: String }
+        },
         owner: {
             type: Schema.Types.ObjectId,
             ref: "User"
         }
-    }, {timestamps: true}
+    }, { timestamps: true }
 )
 
 export const Tweet = mongoose.model("Tweet", tweetSchema);

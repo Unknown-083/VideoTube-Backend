@@ -1,16 +1,24 @@
-import {asyncHandler} from "../utils/asyncHandler.js";
+import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 import { Tweet } from "../models/tweet.model.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import mongoose, { isValidObjectId } from "mongoose";
+import { uploadOnCloudinary } from "../utils/cloudinary.js";
 
 const createTweet = asyncHandler(async (req, res) => {
   const { content } = req.body;
+
+  let image = req.file ? req.file.path : null;
+
+  if (image) {
+    image = await uploadOnCloudinary(image);
+  }
 
   if (content.trim() === "") throw new ApiError(400, "Content is required!");
 
   const tweet = await Tweet.create({
     content,
+    image: image ? { url: image.url, publicId: image.public_id } : null,
     owner: req.user._id,
   });
 
@@ -21,11 +29,79 @@ const createTweet = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, "Tweet post created successfully!", tweet));
 });
 
+const getAllTweets = asyncHandler(async (req, res) => {
+  const allTweets = await Tweet.aggregate([
+    {
+      $lookup: {
+        from: "users",
+        localField: "owner",
+        foreignField: "_id",
+        as: "owner",
+        pipeline: [
+          {
+            $project: {
+              username: 1,
+              fullname: 1,
+              avatar: { url: 1 },
+            },
+          },
+        ],
+      },
+    },
+    {
+      $unwind: "$owner"
+    },
+    {
+      $lookup: {
+        from: "comments",
+        localField: "_id",
+        foreignField: "tweet",
+        as: "comments"
+      }
+    },
+    {
+      $addFields: {
+        commentsCount: { $size: "$comments" }
+      }
+    },
+    {
+      $lookup: {
+        from: "likes",
+        localField: "_id",
+        foreignField: "tweet",
+        as: "likes",
+      }
+    },
+    {
+      $addFields: {
+        likesCount: { $size: "$likes" },
+        hasLiked: {
+          $in: [req.user?._id || null, "$likes.likedBy"]
+        }
+      },
+    },
+    {
+      $project: {
+        likes: 0,
+        comments: 0
+      }
+    }
+  ]);
+
+  if (!allTweets) throw new ApiError(500, "Error while fetching tweets!");
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, "All Tweets fetched successfully!", allTweets));
+});
+
 const getUserTweets = asyncHandler(async (req, res) => {
+  const { userId } = req.params;
+
   const userTweets = await Tweet.aggregate([
     {
       $match: {
-        owner: new mongoose.Types.ObjectId(req.user._id),
+        owner: new mongoose.Types.ObjectId(userId),
       },
     },
     {
@@ -37,6 +113,7 @@ const getUserTweets = asyncHandler(async (req, res) => {
         pipeline: [
           {
             $project: {
+              fullname: 1,
               username: 1,
               avatar: { url: 1 },
             },
@@ -45,7 +122,43 @@ const getUserTweets = asyncHandler(async (req, res) => {
       },
     },
     {
-        $unwind: "$owner"
+      $unwind: "$owner"
+    },
+    {
+      $lookup: {
+        from: "comments",
+        localField: "_id",
+        foreignField: "tweet",
+        as: "comments"
+
+      },
+    },
+    {
+      $addFields: {
+        commentsCount: { $size: "$comments" }
+      }
+    },
+    {
+      $lookup: {
+        from: "likes",
+        localField: "_id",
+        foreignField: "tweet",
+        as: "likes",
+      }
+    },
+    {
+      $addFields: {
+        likesCount: { $size: "$likes" },
+        hasLiked: {
+          $in: [req.user?._id || null, "$likes.likedBy"]
+        }
+      },
+    },
+    {
+      $project: {
+        likes: 0,
+        comments: 0
+      }
     }
   ]);
 
@@ -96,4 +209,4 @@ const deleteTweet = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, "Tweet deleted successfully!", {}));
 });
 
-export { createTweet, updateTweet, deleteTweet, getUserTweets };
+export { createTweet, updateTweet, deleteTweet, getUserTweets, getAllTweets };
